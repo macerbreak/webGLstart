@@ -3,7 +3,7 @@
 <head>
     <title> WebGL </title>
     <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
-    <script type="text/javascript" src="./WebGL_tutorials/glMatrix-0.9.5.js"></script>
+    <script type="text/javascript" src="../WebGL_tutorials/glMatrix-0.9.5.js"></script>
 
     <script type="text/javascript">
         let shaderProgram
@@ -118,13 +118,13 @@
 
             let triangle_vertex = [
                 -0.5, -0.5,
-                1.0, 0.0, 0.0,
+                0.9, 0.1, 0.1,
                 -0.5, 0.5,
-                0.0, 1.0, 0.0,
+                0.9, 0.1, 0.1,
                 0.5, 0.5,
-                0.0, 0.0, 1.0,
+                0.1, 0.9, 0.0,
                 0.5, -0.5,
-                0.0, 0.0, 1.0
+                0.0, 0.0, 0.9
             ]
             let TRIANGLE_VERTEX = gl.createBuffer()
             gl.bindBuffer(gl.ARRAY_BUFFER,TRIANGLE_VERTEX )
@@ -137,14 +137,121 @@
             let PROJMATRIX = mat4.perspective(40,canvas.width/canvas.height,1,100)
             let VIEWMATRIX = mat4.create()
             let MODELMATRIX = mat4.create()
+
+
+            const animateTimeClock = (time) =>{
+                let d = new Date()
+
+                let Seconds = d.getSeconds()
+                let Minutes = d.getMinutes()
+                let Hours = d.getHours()
+
+                let ANGLE_STEP = -6.0
+
+                if(Hours>12){
+                    Hours = Hours -12
+                }
+                let AngleSeconds = (Seconds*ANGLE_STEP)*Math.PI/180
+                let AngleMinutes = (Minutes* ANGLE_STEP)*Math.PI/180
+                let AngleHours = ((Hours* ANGLE_STEP*5)+(Minutes*ANGLE_STEP/12))*Math.PI/180
+                //-----------------------------------------------------------------------
+                mat4.identity(VIEWMATRIX)
+                mat4.identity(MODELMATRIX)
+                //-----------------------------------Minutes-----------------------------
+                mat4.translate(VIEWMATRIX,[0.0,0.0,-5.0])
+                mat4.rotateZ(MODELMATRIX, AngleMinutes)
+                mat4.translate(MODELMATRIX,[0.0,0.5,0.0])
+                mat4.scale(MODELMATRIX, [0.1,1.8,1.0])
+
+                gl.clearColor(0.5,0.5,0.5,1.0)
+                gl.clear(gl.COLOR_BUFFER_BIT)
+
+                gl.bindBuffer(gl.ARRAY_BUFFER, TRIANGLE_VERTEX)
+
+                gl.uniformMatrix4fv(u_Pmatrix,false,PROJMATRIX)
+                gl.uniformMatrix4fv(u_Mmatrix,false,MODELMATRIX)
+                gl.uniformMatrix4fv(u_Vmatrix,false,VIEWMATRIX)
+
+                gl.vertexAttribPointer(a_Position, 2, gl.FLOAT, false, 4*(2+3), 0)
+                gl.vertexAttribPointer(a_Color,3,gl.FLOAT, false,4*(2+3), 2*4)
+
+                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, TRIANGLE_FACES)
+                gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0)
+
+                //-----------------------Hours------------------------------------------
+                mat4.identity(MODELMATRIX)
+                mat4.rotateZ(MODELMATRIX, AngleHours);
+                mat4.translate(MODELMATRIX,[0.0,0.5,0.0])
+                mat4.scale(MODELMATRIX, [0.2,1.2,1.0])
+
+                gl.bindBuffer(gl.ARRAY_BUFFER, TRIANGLE_VERTEX)
+
+                gl.uniformMatrix4fv(u_Pmatrix,false,PROJMATRIX)
+                gl.uniformMatrix4fv(u_Mmatrix,false,MODELMATRIX)
+                gl.uniformMatrix4fv(u_Vmatrix,false,VIEWMATRIX)
+
+                gl.vertexAttribPointer(a_Position, 2, gl.FLOAT, false, 4*(2+3), 0)
+                gl.vertexAttribPointer(a_Color,3,gl.FLOAT, false,4*(2+3), 2*4)
+
+                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, TRIANGLE_FACES)
+                gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0)
+
+                // ------------------------------Seconds---------------------------------
+                mat4.identity(MODELMATRIX);
+                mat4.rotateZ(MODELMATRIX, AngleSeconds);
+                mat4.translate(MODELMATRIX, [0.0, 0.5, 0.0]); //x y z
+                mat4.scale(MODELMATRIX, [0.05, 2.0, 1.0]); //x y z
+
+                gl.bindBuffer(gl.ARRAY_BUFFER, TRIANGLE_VERTEX)
+
+                gl.uniformMatrix4fv(u_Pmatrix,false,PROJMATRIX)
+                gl.uniformMatrix4fv(u_Mmatrix,false,MODELMATRIX)
+                gl.uniformMatrix4fv(u_Vmatrix,false,VIEWMATRIX)
+
+                gl.vertexAttribPointer(a_Position, 2, gl.FLOAT, false, 4*(2+3), 0)
+                gl.vertexAttribPointer(a_Color,3,gl.FLOAT, false,4*(2+3), 2*4)
+
+                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, TRIANGLE_FACES)
+                gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0)
+                //--------------Face----------------------------------------------------
+               let AngleFace = 0
+                for(let i =0; i<=12;i++){
+                    AngleFace = (i * ANGLE_STEP * 5.0) * Math.PI / 180;
+                    mat4.identity(MODELMATRIX)
+                    mat4.rotateZ(MODELMATRIX,AngleFace)
+                    mat4.translate(MODELMATRIX,[0.0,1.5,0.0])
+                    if(i%3 ===0){
+                        mat4.scale(MODELMATRIX, [0.15, 0.5, 1.0]); //x y z
+                    }else{
+                        mat4.scale(MODELMATRIX, [0.1, 0.3, 1.0]); //x y z
+                    }
+                   gl.bindBuffer(gl.ARRAY_BUFFER, TRIANGLE_VERTEX)
+
+                   gl.uniformMatrix4fv(u_Pmatrix,false,PROJMATRIX)
+                   gl.uniformMatrix4fv(u_Mmatrix,false,MODELMATRIX)
+                   gl.uniformMatrix4fv(u_Vmatrix,false,VIEWMATRIX)
+
+                   gl.vertexAttribPointer(a_Position, 2, gl.FLOAT, false, 4*(2+3), 0)
+                   gl.vertexAttribPointer(a_Color,3,gl.FLOAT, false,4*(2+3), 2*4)
+
+                   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, TRIANGLE_FACES)
+                   gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0)
+               }
+
+
+                window.requestAnimationFrame(animateTimeClock);
+            }
             const animateFigure = (time)=> {
                 mat4.identity(VIEWMATRIX)
                 mat4.identity(MODELMATRIX)
                 mat4.translate(VIEWMATRIX, [0.0, 0.0, -10.0])
-                mat4.translate(MODELMATRIX, [0.0, 0.0, 5.0]); //x y z
-                mat4.scale(MODELMATRIX, [2.0, 1.0, 1.0]); //x y z
-                mat4.rotateZ(VIEWMATRIX, 0.0005*time)
-                mat4.rotateY(VIEWMATRIX, 0.0005*time)
+
+                mat4.rotateZ(MODELMATRIX, 0.0005*time)
+                mat4.translate(MODELMATRIX, [0.0, 1.0, 5.0]); //x y z
+                mat4.scale(MODELMATRIX, [0.5, 3.0, 1.0]); //x y z
+
+
+                // mat4.rotateY(VIEWMATRIX, 0.0005*time)
                 gl.clearColor(0.5, 0.5, 0.5, 1.0)
                 gl.clear(gl.COLOR_BUFFER_BIT)
 
@@ -162,7 +269,7 @@
                 gl.flush()
                 window.requestAnimationFrame(animateFigure)
             }
-            animateFigure(0)
+            animateTimeClock(0)
             // gl.drawArrays(gl.TRIANGLES,0,3)
         }
 
