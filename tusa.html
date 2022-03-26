@@ -17,8 +17,8 @@
             'uniform mat4 u_Vmatrix;\n' +
             'void main() {\n' +
             'v_Color=a_Color;\n' +
-            ' gl_PointSize = a_PointSize;\n' +
-            ' gl_Position = u_Pmatrix*u_Mmatrix*u_Vmatrix*vec4(a_Position,0.0,1.0);\n' +
+            // ' gl_PointSize = a_PointSize;\n' +
+            ' gl_Position = u_Pmatrix*u_Vmatrix*u_Mmatrix*vec4(a_Position,0.0,1.0);\n' +
             ' }\n'
 
         var FSHADER_SOURCE =
@@ -134,10 +134,47 @@
             let TRIANGLE_FACES = gl.createBuffer()
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,TRIANGLE_FACES )
             gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(triangle_face),gl.STATIC_DRAW)
+            // ----------------------- MOUSE EVENTS -------------------------
+            let drag = false
+            let old_x
+            let old_y
+            let rot_x = 0
+            let rot_y = 0
+            const mouseDown =(e)=>{
+                drag = true;
+                old_x = e.pageX;
+                old_y = e.pageY;
+                e.preventDefault();
+            }
+            const mouseUp =(e)=>{
+                drag = false;
+                e.preventDefault();
+            }
+            const mouseMove =(e)=>{
+                if (!drag) {
+                    return false;
+                }
+                let newX = old_x - e.pageX;
+                let newY = old_y - e.pageY;
+
+                rot_x += newX * 2 * Math.PI / canvas.width;
+                rot_y += newY * 2 * Math.PI / canvas.height;
+
+                old_x = e.pageX;
+                old_y = e.pageY;
+
+                e.preventDefault();
+            }
+            canvas.addEventListener("mousedown", mouseDown, false);
+            canvas.addEventListener("mouseup", mouseUp, false);
+            canvas.addEventListener("mouseout", mouseUp, false);
+            canvas.addEventListener("mousemove", mouseMove, false);
+            // --------------------------------------------------------------
             let PROJMATRIX = mat4.perspective(40,canvas.width/canvas.height,1,100)
             let VIEWMATRIX = mat4.create()
             let MODELMATRIX = mat4.create()
 
+            gl.enable(gl.DEPTH_TEST);
 
             const animateTimeClock = (time) =>{
                 let d = new Date()
@@ -155,16 +192,22 @@
                 let AngleMinutes = (Minutes* ANGLE_STEP)*Math.PI/180
                 let AngleHours = ((Hours* ANGLE_STEP*5)+(Minutes*ANGLE_STEP/12))*Math.PI/180
                 //-----------------------------------------------------------------------
-                mat4.identity(VIEWMATRIX)
                 mat4.identity(MODELMATRIX)
+                mat4.identity(VIEWMATRIX)
+
+
+
+                mat4.translate(VIEWMATRIX, [0.0, 0.0, -5.0]);
+                mat4.rotateX(VIEWMATRIX, -rot_y);
+                mat4.rotateY(VIEWMATRIX, -rot_x);
                 //-----------------------------------Minutes-----------------------------
-                mat4.translate(VIEWMATRIX,[0.0,0.0,-5.0])
+
                 mat4.rotateZ(MODELMATRIX, AngleMinutes)
-                mat4.translate(MODELMATRIX,[0.0,0.5,0.0])
+                mat4.translate(MODELMATRIX,[0.0,0.5,-0.00])
                 mat4.scale(MODELMATRIX, [0.1,1.8,1.0])
 
                 gl.clearColor(0.5,0.5,0.5,1.0)
-                gl.clear(gl.COLOR_BUFFER_BIT)
+                gl.clear(gl.COLOR_BUFFER_BIT| gl.DEPTH_BUFFER_BIT)
 
                 gl.bindBuffer(gl.ARRAY_BUFFER, TRIANGLE_VERTEX)
 
@@ -237,7 +280,7 @@
                    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, TRIANGLE_FACES)
                    gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0)
                }
-
+                gl.flush();
 
                 window.requestAnimationFrame(animateTimeClock);
             }
