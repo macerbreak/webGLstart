@@ -1,4 +1,18 @@
-const render = (gl,PROJMATRIX,MODELMATRIX,VIEWMATRIX,u_Pmatrix,u_Mmatrix,u_Vmatrix,TRIANGLE_VERTEX,TRIANGLE_FACES,a_Position,a_uv,tex,MouseContr)=>{
+const render = (gl,
+                PROJMATRIX,
+                MODELMATRIX,
+                VIEWMATRIX,
+                u_Pmatrix,
+                u_Mmatrix,
+                u_Vmatrix,
+                TRIANGLE_VERTEX,
+                TRIANGLE_FACES,
+                TRIANGLE_UV,
+                a_Position,
+                a_uv,
+                tex,
+                MouseContr,
+                ModelIndices)=>{
     gl.enable(gl.DEPTH_TEST);
     gl.depthFunc(gl.LEQUAL);
     gl.clearDepth(1.0);
@@ -7,13 +21,15 @@ const render = (gl,PROJMATRIX,MODELMATRIX,VIEWMATRIX,u_Pmatrix,u_Mmatrix,u_Vmatr
     let  Z = 0.;
     const  AMORTIZATION=0.95;
     const animate = (time) => {
-        MouseContr.dX *= AMORTIZATION, MouseContr.dY *= AMORTIZATION;
-        MouseContr.theta += MouseContr.dX, MouseContr.phi += MouseContr.dY;
+        MouseContr.dX *= AMORTIZATION
+        MouseContr.dY *= AMORTIZATION;
+        MouseContr.theta += MouseContr.dX
+        MouseContr.phi += MouseContr.dY;
         const dt=time-old_time;
         Z = Z + MouseContr.dZ;
 
 
-        mat4.identity(MODELMATRIX);
+        mat4.identity(MODELMATRIX)
         mat4.translate(MODELMATRIX, [0.0, 0.0, Z]);
         mat4.rotateX(MODELMATRIX , MouseContr.phi);
         mat4.rotateY(MODELMATRIX , MouseContr.theta);
@@ -35,11 +51,12 @@ const render = (gl,PROJMATRIX,MODELMATRIX,VIEWMATRIX,u_Pmatrix,u_Mmatrix,u_Vmatr
 
         gl.bindBuffer(gl.ARRAY_BUFFER,TRIANGLE_VERTEX);
 
-        gl.vertexAttribPointer(a_Position,3,gl.FLOAT,false,4*(3+2),0);
-        gl.vertexAttribPointer(a_uv,2,gl.FLOAT,false,4*(3+2),3*4);
+        gl.vertexAttribPointer(a_Position,3,gl.FLOAT,false,4*3,0);
+        gl.bindBuffer(gl.ARRAY_BUFFER,TRIANGLE_UV);
+        gl.vertexAttribPointer(a_uv,2,gl.FLOAT,false,4*(2),0);
 
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, TRIANGLE_FACES);
-        gl.drawElements(gl.TRIANGLES,triangle_face.length, gl.UNSIGNED_SHORT, 0);
+        gl.drawElements(gl.TRIANGLES,ModelIndices.length, gl.UNSIGNED_SHORT, 0);
 
         gl.flush();
 
